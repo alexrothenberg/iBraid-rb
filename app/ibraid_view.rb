@@ -4,6 +4,12 @@ class IBraidView < UIView
   def initWithFrame(rect)
     super
     self.bounds = UIScreen.mainScreen.applicationFrame # kinda hardcoding...
+    
+    @strands = [:redColor, :greenColor, :blueColor].map do |color|
+      Strand.new UIColor.send(color)
+    end
+    @actions = [:right_over, :left_over, :right_over, :left_over]
+    
     setUpPlacardViews
     self
   end
@@ -12,13 +18,12 @@ class IBraidView < UIView
     @leftColor   = UIColor.greenColor
     @centerColor = UIColor.blueColor
     @rightColor  = UIColor.redColor
+    colors =  [@leftColor, @centerColor, @rightColor]
 
-    @strokes = [
-      RightOverCenterStroke.new(bounds),
-      LeftOverCenterStroke.new( bounds),
-      RightOverCenterStroke.new(bounds),
-      LeftOverCenterToBottomStroke.new(bounds)
-    ]
+    @strokes = [RightOverCenterStroke.new(-60, colors)]
+    add_stroke(LeftOverCenterStroke)
+    add_stroke(RightOverCenterStroke)
+    add_stroke(LeftOverCenterToBottomStroke)
 
     # @strokes = [
     #   LeftOverCenterStroke.new(bounds),
@@ -27,6 +32,11 @@ class IBraidView < UIView
     #   RightOverCenterToBottomStroke.new(bounds)
     # ]
   end
+  
+  def add_stroke(stroke_class)
+    previous_stroke = strokes.last
+    @strokes << stroke_class.new(previous_stroke.bottom, previous_stroke.after_colors)
+  end
 
   def drawRect(rect)
     context = UIGraphicsGetCurrentContext();
@@ -34,15 +44,18 @@ class IBraidView < UIView
     # Draw the background as a white square framed in black
     CGContextSetRGBFillColor(context, 1.0, 1.0, 1.0, 1.0)
     CGContextFillRect(context, bounds)
-
-    top = -60
-    colors =  [UIColor.redColor, UIColor.greenColor, UIColor.blueColor, nil]
-
-    strokes.each do |element|
-      colors = element.drawStroke(top, colors[0], colors[1], colors[2])
-      top += 30
+    
+    draw_strokes
+  end
+  
+  def draw_strokes
+    context = UIGraphicsGetCurrentContext()
+    @strokes.each do |stroke|
+      stroke.draw(context)
     end
   end
+
+
 
   def touchesBegan(touches, withEvent:event)
     touch = touches.anyObject
@@ -70,9 +83,9 @@ class IBraidView < UIView
       stroke = strokes.last
 
       if stroke.touchUpAtLocation(location)
-        nextStrokes = stroke.nextStrokes
-        strokes.removeLastObject()
-        strokes.addObjectsFromArray(nextStrokes)
+        next_strokes = stroke.next_strokes
+        strokes.pop
+        next_strokes.each {|stroke| add_stroke(stroke) }
       end
       setNeedsDisplay()
     end

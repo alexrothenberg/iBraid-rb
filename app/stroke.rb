@@ -1,10 +1,15 @@
 class Stroke
-  attr_reader :bounds, :strandWidth
+  attr_reader :top, :colors, :strandWidth
   attr_accessor :x
-  def initialize(frame)
-    @bounds = frame
+  def initialize(top, colors)
+    @top = top
+    @colors = colors
     @strandWidth = 30
     # @debugging = true
+  end
+  
+  def bounds
+    @bounds ||= UIScreen.mainScreen.applicationFrame # kinda hardcoding...
   end
 
   def sideSpace
@@ -22,10 +27,27 @@ class Stroke
   def right
     2.5*strandWidth + sideSpace
   end
+  
+  def bottom
+    top+30
+  end
+  def left_color
+    colors[0]
+  end
+  def center_color
+    colors[1]
+  end
+  def right_color
+    colors[2]
+  end
+  
+  def draw(context)
+    segments.each do |segment|
+    	drawStrand(context, segment.controlPoint1, segment.controlPoint2, segment.controlPoint3, segment.controlPoint4, segment.color)
+    end
+  end
 
-  def drawStrand(controlPoint1, controlPoint2, controlPoint3, controlPoint4, strand_color)
-    
-    context = UIGraphicsGetCurrentContext()
+  def drawStrand(context, controlPoint1, controlPoint2, controlPoint3, controlPoint4, strand_color)
     cgBounds = self.bounds;
 
     UIColor.clearColor

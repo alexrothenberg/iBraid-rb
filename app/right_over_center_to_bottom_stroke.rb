@@ -1,37 +1,23 @@
 class RightOverCenterToBottomStroke < Stroke
-  def drawStroke(top, leftColor, centerColor, rightColor)
-  	controlPoint1 = CGPointMake(center - 1,     top + 40 - 1 + 10)
-    controlPoint2 = controlPoint1
-    controlPoint3 = controlPoint1
-  	controlPoint4 = CGPointMake(right + 60,        top + 40 + 100)
-  	drawStrand(controlPoint1, controlPoint2, controlPoint3, controlPoint4, centerColor)
-
-    bottomOfCenter = center - 70
-  	controlPoint1 = CGPointMake(right  - 1,      top + 10 - 1 + 10)
-  	controlPoint2 = CGPointMake(right  + 15,     top + 10 + 25)
-  	controlPoint3 = CGPointMake(right  + 5,      top + 50)
-  	controlPoint4 = CGPointMake(bottomOfCenter,  top + 50 + 100)
-  	drawStrand(controlPoint1, controlPoint2, controlPoint3, controlPoint4, rightColor)
-
+  def segments
     x = left - 100
     controlPoint3StartX = left - 30
     controlPoint3EndX   = left - 5
-    if x < controlPoint3StartX
-      controlPoint3CurrentX = controlPoint3StartX
+    pt3CurrentX = if x < controlPoint3StartX
+      controlPoint3StartX
     elsif x > controlPoint3EndX
-      controlPoint3CurrentX = controlPoint3EndX
+      controlPoint3EndX
     else
-      controlPoint3CurrentX = x
+      x
     end
-    controlPoint1 = CGPointMake(left + 1,             top+40-1+10   )
-    controlPoint2 = CGPointMake(left - 15,           top+40 + 25)
-    controlPoint3 = CGPointMake(controlPoint3CurrentX,      top+40 + 40)
-    controlPoint4 = CGPointMake(x,                          top+40 + 110)
-  	drawStrand(controlPoint1, controlPoint2, controlPoint3, controlPoint4, leftColor)
+    [ Segment.new(center_color, [center - 1, top + 40 - 1 + 10], [center -  1, top + 40 - 1 + 10], [center - 1, top + 40 - 1 + 10], [right  + 60, top + 40 + 100]),
+      Segment.new(right_color,  [right  - 1, top + 10 - 1 + 10], [right  + 15, top + 10 + 20    ], [right  + 5, top + 10 + 35    ], [center - 70, top + 50 + 100]),
+      Segment.new(left_color,   [left  + 1, top + 40 - 1 + 10], [left   - 15, top + 40 + 25    ], [pt3CurrentX,  top + 80         ], [x, top + 50 + 100])
+    ]
+  end
 
-    # NSLog("#{self} (#{controlPoint1.x}, #{controlPoint1.y}), (#{controlPoint2.x}, #{controlPoint2.y}), (#{controlPoint3.x}, #{controlPoint3.y}), (#{controlPoint4.x}, #{controlPoint4.y})")
-
-    return [leftColor, rightColor, centerColor]
+  def after_colors
+    [left_color, right_color, center_color]
   end
   
   def touchAtLocation(location)
@@ -46,7 +32,7 @@ class RightOverCenterToBottomStroke < Stroke
     braidHappened
   end
 
-  def nextStrokes
-    [ RightOverCenterStroke.new(bounds), LeftOverCenterToBottomStroke.new(bounds) ]
+  def next_strokes
+    [RightOverCenterStroke, LeftOverCenterToBottomStroke]
   end
 end
