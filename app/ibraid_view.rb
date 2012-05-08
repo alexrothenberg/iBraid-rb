@@ -60,6 +60,7 @@ class IBraidView < UIView
   def touchesBegan(touches, withEvent:event)
     touch = touches.anyObject
     location = touch.locationInView(self)
+    strokes.last.x = location.x
 
     self.braiding = strokes.last.touchAtLocation(location)
   end
